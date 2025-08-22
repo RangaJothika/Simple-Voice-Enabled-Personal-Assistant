@@ -17,9 +17,9 @@ engine.setProperty('voice', voices[1].id)
 engine.setProperty('volume', 1.0)  # max volume
 rate = engine.getProperty('rate')
 engine.setProperty('rate', rate - 25)
+load_dotenv()#reads .env file and sets each key-value pair as an environment variable in your Python program temporarily.
 
 # News API
-load_dotenv()#reads .env file and sets each key-value pair as an environment variable in your Python program temporarily.
 api_key = os.getenv("NEWS_API_KEY")  #api key created from newapi website
 newsapi = NewsApiClient(api_key=api_key)#creates newsapi obj with this api key
 
@@ -103,15 +103,15 @@ def tell_joke():
 
 def get_weather():
     try:
-        owm = pyowm.OWM('7d8420b42620c6fdd28ac28c9f02be8b')#Connects to the weather service.
+        owm_key = os.getenv("OWMAPI_KEY")  # read from .env
+        owm = pyowm.OWM(owm_key)  # use the new key to connect to the weather service
         mgr = owm.weather_manager()#manage weather data
         observation = mgr.weather_at_place('Chennai, IN')
         w = observation.weather#Stores weather details.
         temperature = w.temperature('celsius')["temp"]
         humidity = w.humidity
         status = w.status
-        speak(
-            f"The weather is {status} with temperature {temperature} degrees Celsius and humidity {humidity} percent.")
+        speak(f"The weather is {status} with temperature {temperature} degrees Celsius and humidity {humidity} percent.")
         print(f"Temperature: {temperature}°C, Humidity: {humidity}%, Status: {status}")
     except Exception as e:
         print(f"Weather error: {e}")
