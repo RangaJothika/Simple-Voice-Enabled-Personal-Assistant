@@ -7,6 +7,8 @@ import wikipedia   # To search Wikipedia
 from pygame import mixer   # For playing audio/music
 import speech_recognition as sr  # To recognize voice input
 from newsapi import NewsApiClient  # To fetch news headlines
+import os# to access python process environmental variables
+from dotenv import load_dotenv
 
 # Initialize text-to-speech engine
 engine = pyttsx3.init() #creates engine obj which is of the search engine sw in system by defualt
@@ -17,7 +19,8 @@ rate = engine.getProperty('rate')
 engine.setProperty('rate', rate - 25)
 
 # News API
-api_key = "c753a83b6fcc4ef28f76cd1ecedc91a4"#api key created from newapi website
+load_dotenv()#reads .env file and sets each key-value pair as an environment variable in your Python program temporarily.
+api_key = os.getenv("NEWS_API_KEY")  #api key created from newapi website
 newsapi = NewsApiClient(api_key=api_key)#creates newsapi obj with this api key
 
 # Commands and responses
