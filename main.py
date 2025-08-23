@@ -26,7 +26,8 @@ creator_replies = ['I was created by Jo.', 'Some human I never got to know.']
 time_queries = ['what time is it', 'what is the time', 'time']
 identity_queries = ['who are you', 'what is your name']
 open_browser_cmds = ['open browser', 'open google']
-music_cmds = ['play music', 'play songs', 'play a song', 'open music player']
+playmusic_cmds = ['play music', 'play songs', 'play a song', 'open music player']
+stop_music_cmds = ['stop music', 'pause music', 'turn off music']
 joke_cmds = ['tell a joke', 'tell me a joke', 'say something funny', 'tell something funny']
 jokes = [
     "Can a kangaroo jump higher than a house? Of course, a house doesn't jump at all.",
@@ -46,9 +47,10 @@ news_cmds = ['todays news', 'news headlines', 'news']
 # Initialize mixer once (not obj creation)(only needs to be called once)
 mixer.init()
 
+
 def speak(text):
     try:
-        engine = pyttsx3.init()   # new engine each time
+        engine = pyttsx3.init()  # new engine each time
         voices = engine.getProperty('voices')
         engine.setProperty('voice', voices[1].id)
         engine.setProperty('volume', 1.0)
@@ -60,6 +62,7 @@ def speak(text):
         engine.stop()
     except Exception as e:
         print(f"TTS error: {e}")
+
 
 def listen():
     r = sr.Recognizer()  # Creates a recognizer object from speech_recognition for hearing sound
@@ -97,6 +100,15 @@ def play_music():
     except Exception as e:
         print(f"Music error: {e}")
         speak("Sorry, I could not play music.")
+
+
+def stop_music():
+    try:
+        mixer.music.stop()
+        speak("Music stopped.")
+    except Exception as e:
+        print(f"Stop music error: {e}")
+        speak("Sorry, I could not stop the music.")
 
 
 def tell_joke():
@@ -191,8 +203,11 @@ while True:
     elif any(q in user_input for q in news_cmds):
         get_news()
 
-    elif any(q in user_input for q in music_cmds):
+    elif any(q in user_input for q in playmusic_cmds):
         play_music()
+
+    elif any(q in user_input for q in stop_music_cmds):
+        stop_music()
 
     elif any(q in user_input for q in identity_queries):
         reply = "I am your personal AI assistant."
@@ -222,5 +237,3 @@ while True:
 
     else:
         search_wikipedia(user_input)
-
-
