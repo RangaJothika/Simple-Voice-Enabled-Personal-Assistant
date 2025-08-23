@@ -9,6 +9,7 @@ import speech_recognition as sr  # To recognize voice input
 from newsapi import NewsApiClient  # To fetch news headlines
 import os# to access python process environmental variables
 from dotenv import load_dotenv
+import time
 
 # Initialize text-to-speech engine
 engine = pyttsx3.init() #creates engine obj which is of the search engine sw in system by defualt
@@ -20,7 +21,7 @@ engine.setProperty('rate', rate - 25)
 load_dotenv()#reads .env file and sets each key-value pair as an environment variable in your Python program temporarily.
 
 # News API
-api_key = os.getenv("NEWS_API_KEY")  #api key created from newapi website
+api_key = os.getenv("NEWSAPI_KEY")  #api key created from newapi website
 newsapi = NewsApiClient(api_key=api_key)#creates newsapi obj with this api key
 
 # Commands and responses
@@ -54,16 +55,19 @@ mixer.init()
 
 
 def speak(text):
-    engine.say(text)# add the arg to the queue to speak
-    engine.runAndWait()#starts speech engine and makes it speak all in queue in order
-
-
+    if engine._inLoop:  # if engine already speaking
+        engine.endLoop()
+    engine.say(text)
+    engine.runAndWait()
+    time.sleep(0.2)
+    
 def listen():
     r = sr.Recognizer()#Creates a recognizer object from speech_recognition for hearing sound
     try:
         with sr.Microphone() as source:## Use microphone as input
+            r.adjust_for_ambient_noise(source, duration=1)  # calibrates to background noise
             print("Listening...")
-            audio = r.listen(source)  # Record user's voice
+            audio = r.listen(source, timeout=5, phrase_time_limit=5)  # Record user's voice
         return r.recognize_google(audio).lower()#Converts speech to text
     except (sr.UnknownValueError, sr.RequestError, OSError) as e:
         if isinstance(e, sr.UnknownValueError):
