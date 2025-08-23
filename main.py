@@ -1,28 +1,21 @@
-import random      # For picking random jokes or greetings
-import datetime    # To get the current date and time
+import random  # For picking random jokes or greetings
+import datetime  # To get the current date and time
 import webbrowser  # To open websites like Google or YouTube
-import pyowm       # For weather information from OpenWeatherMap
-import pyttsx3     # Text-to-speech engine
-import wikipedia   # To search Wikipedia
-from pygame import mixer   # For playing audio/music
+import pyowm  # For weather information from OpenWeatherMap
+import pyttsx3  # Text-to-speech engine
+import wikipedia  # To search Wikipedia
+from pygame import mixer  # For playing audio/music
 import speech_recognition as sr  # To recognize voice input
 from newsapi import NewsApiClient  # To fetch news headlines
-import os# to access python process environmental variables
+import os  # to access python process environmental variables
 from dotenv import load_dotenv
 import time
 
-# Initialize text-to-speech engine
-engine = pyttsx3.init() #creates engine obj which is of the search engine sw in system by defualt
-voices = engine.getProperty('voices')
-engine.setProperty('voice', voices[1].id)
-engine.setProperty('volume', 1.0)  # max volume
-rate = engine.getProperty('rate')
-engine.setProperty('rate', rate - 25)
-load_dotenv()#reads .env file and sets each key-value pair as an environment variable in your Python program temporarily.
+load_dotenv()  # reads .env file and sets each key-value pair as an environment variable in your Python program temporarily.
 
 # News API
-api_key = os.getenv("NEWSAPI_KEY")  #api key created from newapi website
-newsapi = NewsApiClient(api_key=api_key)#creates newsapi obj with this api key
+api_key = os.getenv("NEWSAPI_KEY")  # api key created from newapi website
+newsapi = NewsApiClient(api_key=api_key)  # creates newsapi obj with this api key
 
 # Commands and responses
 greetings = ['hey there', 'hello', 'hi', 'hai', 'hey!']
@@ -53,22 +46,29 @@ news_cmds = ['todays news', 'news headlines', 'news']
 # Initialize mixer once (not obj creation)(only needs to be called once)
 mixer.init()
 
-
 def speak(text):
-    if engine._inLoop:  # if engine already speaking
-        engine.endLoop()
-    engine.say(text)
-    engine.runAndWait()
-    time.sleep(0.2)
-    
-def listen():
-    r = sr.Recognizer()#Creates a recognizer object from speech_recognition for hearing sound
     try:
-        with sr.Microphone() as source:## Use microphone as input
+        engine = pyttsx3.init()   # new engine each time
+        voices = engine.getProperty('voices')
+        engine.setProperty('voice', voices[1].id)
+        engine.setProperty('volume', 1.0)
+        rate = engine.getProperty('rate')
+        engine.setProperty('rate', rate - 25)
+
+        engine.say(text)
+        engine.runAndWait()
+        engine.stop()
+    except Exception as e:
+        print(f"TTS error: {e}")
+
+def listen():
+    r = sr.Recognizer()  # Creates a recognizer object from speech_recognition for hearing sound
+    try:
+        with sr.Microphone() as source:  ## Use microphone as input
             r.adjust_for_ambient_noise(source, duration=1)  # calibrates to background noise
             print("Listening...")
             audio = r.listen(source, timeout=5, phrase_time_limit=5)  # Record user's voice
-        return r.recognize_google(audio).lower()#Converts speech to text
+        return r.recognize_google(audio).lower()  # Converts speech to text
     except (sr.UnknownValueError, sr.RequestError, OSError) as e:
         if isinstance(e, sr.UnknownValueError):
             speak("I didn't get that. Please try again.")
@@ -109,13 +109,14 @@ def get_weather():
     try:
         owm_key = os.getenv("OWMAPI_KEY")  # read from .env
         owm = pyowm.OWM(owm_key)  # use the new key to connect to the weather service
-        mgr = owm.weather_manager()#manage weather data
+        mgr = owm.weather_manager()  # manage weather data
         observation = mgr.weather_at_place('Chennai, IN')
-        w = observation.weather#Stores weather details.
+        w = observation.weather  # Stores weather details.
         temperature = w.temperature('celsius')["temp"]
         humidity = w.humidity
         status = w.status
-        speak(f"The weather is {status} with temperature {temperature} degrees Celsius and humidity {humidity} percent.")
+        speak(
+            f"The weather is {status} with temperature {temperature} degrees Celsius and humidity {humidity} percent.")
         print(f"Temperature: {temperature}°C, Humidity: {humidity}%, Status: {status}")
     except Exception as e:
         print(f"Weather error: {e}")
@@ -124,7 +125,7 @@ def get_weather():
 
 def get_news():
     try:
-        top_headlines = newsapi.get_top_headlines(country="in", page_size=5)#Fetches top 5 Indian news headlines.
+        top_headlines = newsapi.get_top_headlines(country="in", page_size=5)  # Fetches top 5 Indian news headlines.
         articles = top_headlines.get("articles", [])
         if not articles:
             speak("No news found at the moment.")
@@ -138,7 +139,7 @@ def get_news():
 
 
 def tell_time():
-    now = datetime.datetime.now()#Gets current time.
+    now = datetime.datetime.now()  # Gets current time.
     current_time = now.strftime("%H:%M")
     print("Current time:", current_time)
     speak("The time is " + current_time)
@@ -153,7 +154,7 @@ def search_wikipedia(query):
         speak("Your query is ambiguous, please be more specific.")
     except (wikipedia.exceptions.PageError, Exception):
         speak("I could not find a Wikipedia page on that topic. Let me search on Google for you.")
-        webbrowser.open_new(f'https://www.google.com/search?q={query}')#if no pg is found open google search page
+        webbrowser.open_new(f'https://www.google.com/search?q={query}')  # if no pg is found open google search page
 
 
 # Main loop
@@ -162,7 +163,7 @@ while True:
     if not user_input:
         continue
 
-    if any(greet in user_input for greet in greetings):#check for every greet (ele) in greetings arr is in user_input
+    if any(greet in user_input for greet in greetings):  # check for every greet (ele) in greetings arr is in user_input
         reply = random.choice(greetings)
         print(reply)
         speak(reply)
@@ -221,3 +222,5 @@ while True:
 
     else:
         search_wikipedia(user_input)
+
+
